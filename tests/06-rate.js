@@ -1,6 +1,13 @@
+
+import { Trend } from 'k6/metrics'
 import http from 'k6/http'
 import { check } from 'k6'
 import { Rate } from 'k6/metrics'
+
+let getApiTrend = new Trend('TREND_Get_Api_Duration')
+let getApiTrendWaiting = new Trend('TREND_Get_Api_Waiting')
+let getApiGoogleTrend = new Trend('TREND_Get_Api__Google_Duration')
+let getApiGoogleTrendWaiting = new Trend('TREND_Get_Api_Google_Waiting')
 
 export let errorRate = new Rate('errors')
 
@@ -23,4 +30,16 @@ export default function () {
         'body length is 0': (r) => r.body.length == 300
     })
     errorRate.add(!check2)
+
+    getApiTrend.add(response.timings.duration)
+    getApiTrendWaiting.add(response.timings.waiting)
+
+    let googleResponse = http.get("https://www.google.lk/");
+
+    getApiGoogleTrend.add(googleResponse.timings.duration)
+    getApiGoogleTrendWaiting.add(googleResponse.timings.waiting)
+ 
+    //influxdb - host on localhost:8086
+    //grafana - host on localhost:3000 - credentials username - admin password - admin
+    
 }
